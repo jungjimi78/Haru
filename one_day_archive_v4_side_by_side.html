@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>오늘 - 하루 아카이브 V2</title>
+<style>
+:root{
+  --bg:#f7efe7;--card:#fffdf9;--ink:#211b17;--muted:#8c7a6d;--line:#e8dcd0;
+  --accent:#ff8d6b;--shadow:0 14px 35px rgba(80,48,30,.12);
+  --meal:#fff0b8;--prayer:#ead6ff;--reading:#d9efbd;--english:#cfe9ff;--word:#e8dcff;
+  --family:#ffd7df;--swim:#ccecff;--health:#ccefd8;--work:#d8e2ff;--move:#e2e2e2;--rest:#eee6dc;--gratitude:#ffe0bd;--sauna:#ffd4bd;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;background:linear-gradient(180deg,#0d315f 0,#173d70 130px,#f7efe7 130px);color:var(--ink)}
+.app{max-width:920px;margin:0 auto;padding:18px 14px 90px}
+.phone{background:rgba(255,255,255,.92);border-radius:34px;padding:18px;box-shadow:var(--shadow)}
+.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.kicker{font-weight:900;font-size:13px}.day{font-size:58px;line-height:.9;font-weight:300;letter-spacing:-.08em}.dateText{color:var(--muted);font-size:13px;margin-top:6px}
+button{border:0;background:#211b17;color:white;border-radius:14px;padding:10px 12px;font-weight:800;cursor:pointer}
+button.light{background:#fff;color:#211b17;border:1px solid var(--line)}button.danger{background:#e85252}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+.stat{background:#fff;border:1px solid var(--line);border-radius:16px;text-align:center;padding:9px 5px}.stat b{display:block;font-size:16px}.stat span{font-size:11px;color:var(--muted)}
+.main{display:grid;grid-template-columns:320px 1fr;gap:14px;align-items:start}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:26px;overflow:hidden}.panelTitle{padding:12px 14px;border-bottom:1px solid var(--line);font-size:13px;font-weight:900;color:var(--muted)}
+.list{padding:10px;display:flex;flex-direction:column;gap:8px;max-height:650px;overflow:auto}
+.item{border-radius:14px;padding:10px 10px 10px 13px;background:white;border:1px solid var(--line);position:relative;cursor:pointer}.item.done{opacity:.62}.itemTitle{font-weight:900;font-size:15px}.itemTime{font-size:13px;color:var(--muted);margin-top:2px}
+.gridHead{padding:12px 14px;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted);line-height:1.35}
+.grid{display:grid;grid-template-columns:44px repeat(6,1fr);user-select:none;touch-action:pan-y}
+.time{height:40px;border-right:1px solid var(--line);border-bottom:1px solid #eee4dc;font-size:12px;color:#67574d;display:flex;align-items:flex-start;justify-content:center;padding-top:2px;background:#fffaf6}
+.slot{height:40px;border-right:1px solid #eee4dc;border-bottom:1px solid #eee4dc;background:white;position:relative;overflow:hidden;touch-action:pan-y}
+.slot:nth-child(7n){border-right:0}.slot.selected{outline:2px solid var(--accent);outline-offset:-2px;background:#fff3ed}
+.mini{position:absolute;left:1px;right:1px;border-radius:4px;padding:2px;font-size:10px;line-height:1.05;font-weight:900;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:pointer;color:#2b2420}
+.mini.done:after{content:"✓";float:right;background:rgba(255,255,255,.65);border-radius:50%;width:12px;height:12px;text-align:center;line-height:12px}
+.cat-meal{background:var(--meal)}.cat-prayer{background:var(--prayer)}.cat-reading{background:var(--reading)}.cat-english{background:var(--english)}.cat-word{background:var(--word)}
+.cat-family{background:var(--family)}.cat-swim{background:var(--swim)}.cat-health{background:var(--health)}.cat-work{background:var(--work)}.cat-move{background:var(--move)}.cat-rest{background:var(--rest)}.cat-gratitude{background:var(--gratitude)}.cat-sauna{background:var(--sauna)}
+.review{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:14px}.review h3{margin:0 0 8px;font-size:17px}
+textarea,input,select{width:100%;font:inherit;border:1px solid var(--line);border-radius:14px;padding:10px 11px;background:#fffaf6}textarea{min-height:72px;resize:vertical}
+.modal{position:fixed;inset:0;display:none;background:rgba(0,0,0,.33);align-items:flex-end;justify-content:center;z-index:30}.modal.show{display:flex}
+.sheet{width:100%;max-width:560px;max-height:90vh;overflow:auto;background:white;border-radius:30px 30px 0 0;padding:18px 16px 22px;box-shadow:0 -18px 50px rgba(0,0,0,.22)}
+.sheet h2{margin:0 0 10px;font-size:22px;letter-spacing:-.04em}label{display:block;margin:10px 0 5px;font-size:12px;font-weight:900;color:var(--muted)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.template{margin-top:10px;padding:12px;border:1px dashed var(--line);border-radius:18px;background:#fffdf9}.templateName{font-weight:900;margin-bottom:4px}
+.actions{display:flex;gap:8px;margin-top:14px}.actions button{flex:1}
+.quick{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;pointer-events:none}.quickInner{width:100%;max-width:920px;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);pointer-events:auto}
+.quickInner button{background:transparent;color:var(--ink);border:0;border-radius:0;padding:12px 3px;font-weight:800}
+.toast{position:fixed;left:50%;bottom:70px;transform:translateX(-50%);background:#211b17;color:white;padding:10px 14px;border-radius:999px;font-size:13px;display:none;z-index:50}
+@media(max-width:760px){
+  .app{overflow-x:auto;padding-left:10px;padding-right:10px}
+  .phone{border-radius:30px;padding:14px;min-width:760px}
+  .main{grid-template-columns:280px 1fr}
+  .list{max-height:650px}
+  .quickInner{min-width:760px}
+}
+</style>
+</head>
+<body>
+<div class="app"><div class="phone">
+  <div class="header">
+    <div><div class="kicker" id="dow">TODAY</div><div class="day" id="dayNum">--</div><div class="dateText" id="dateText"></div></div>
+    <div style="display:flex;gap:8px"><button class="light" id="addNow">+ 지금</button><button class="light" id="resetBtn">초기화</button></div>
+  </div>
+  <div class="summary">
+    <div class="stat"><b id="blockCount">0</b><span>블록</span></div><div class="stat"><b id="doneCount">0</b><span>완료</span></div>
+    <div class="stat"><b id="plannedMin">0m</b><span>계획</span></div><div class="stat"><b id="archiveCount">0</b><span>기록</span></div>
+  </div>
+  <div class="main">
+    <section class="panel listPanel"><div class="panelTitle">오늘의 아카이브</div><div class="list" id="list"></div></section>
+    <section class="panel gridPanel"><div class="gridHead">05:00~23:00 / 한 칸 10분. <b>빈칸은 길게 눌러야</b> 블록 생성. 아카이브는 왼쪽, 그리드는 오른쪽 고정. 이미 있는 블록은 짧게 탭하면 수정, 길게 누르면 같은 시간에 새 블록 추가. 겹치는 일정은 같은 칸 안에서 자동으로 나뉘어 보여.</div><div class="grid" id="grid"></div></section>
+  </div>
+  <section class="review"><h3>🌙 하루 마감</h3><label>오늘 한 줄</label><textarea id="dayNote" placeholder="오늘 하루를 한 문장으로 남기기"></textarea></section>
+</div></div>
+
+<div class="modal" id="modal"><div class="sheet">
+  <h2 id="sheetTitle">블록 추가</h2>
+  <div class="row"><div><label>시작</label><input id="startTime" readonly></div><div><label>끝</label><input id="endTime" readonly></div></div>
+  <label>블록 종류</label><select id="typeInput">
+    <option value="meal">🍳 식사</option><option value="prayer">🙏 기도</option><option value="word">📖 말씀</option><option value="reading">📚 독서</option><option value="english">💬 오늘의 표현</option><option value="gratitude">💛 감사</option><option value="family">👨‍👩‍👦 가족</option><option value="swim">🏊 수영</option><option value="sauna">♨️ 사우나</option><option value="health">🧘 건강</option><option value="work">💻 일</option><option value="move">🚗 이동</option><option value="rest">🌿 휴식</option>
+  </select>
+  <div class="row"><div><label>아이콘</label><input id="iconInput" maxlength="4"></div><div><label>제목</label><input id="titleInput"></div></div>
+  <div class="template" id="template"></div>
+  <label>기본 메모</label><textarea id="memoInput" placeholder="추가로 남길 말"></textarea>
+  <label><input type="checkbox" id="doneInput" style="width:auto"> 완료</label>
+  <div class="actions"><button id="saveBtn">저장</button><button class="light" id="sameTimeBtn">같은 시간에 추가</button><button class="danger" id="deleteBtn">삭제</button><button class="light" id="closeBtn">닫기</button></div>
+</div></div>
+
+<div class="quick"><div class="quickInner">
+  <button onclick="quickAdd('english')">💬 영어</button><button onclick="quickAdd('word')">📖 말씀</button><button onclick="quickAdd('prayer')">🙏 기도</button><button onclick="quickAdd('sauna')">♨️ 사우나</button><button onclick="quickAdd('meal')">🍳 식사</button>
+</div></div>
+<div class="toast" id="toast">길게 누르면 블록 생성</div>
+
+<script>
+const START=5,END=23,TOTAL=(END-START)*6;
+const todayKey=new Date().toISOString().slice(0,10);
+const storageKey='one-day-archive-v2-'+todayKey,noteKey='one-day-note-v2-'+todayKey;
+const meta={
+ meal:{icon:'🍳',title:'식사',cat:'meal'},prayer:{icon:'🙏',title:'기도',cat:'prayer'},word:{icon:'📖',title:'말씀',cat:'word'},reading:{icon:'📚',title:'독서',cat:'reading'},english:{icon:'💬',title:'오늘의 표현',cat:'english'},gratitude:{icon:'💛',title:'감사',cat:'gratitude'},family:{icon:'👨‍👩‍👦',title:'가족',cat:'family'},swim:{icon:'🏊',title:'수영',cat:'swim'},sauna:{icon:'♨️',title:'사우나',cat:'sauna'},health:{icon:'🧘',title:'건강',cat:'health'},work:{icon:'💻',title:'일',cat:'work'},move:{icon:'🚗',title:'이동',cat:'move'},rest:{icon:'🌿',title:'휴식',cat:'rest'}
+};
+const fields={
+ meal:[['menu','오늘 메뉴','예: 불고기, 된장찌개'],['prep','준비 메모','도시락, 장보기']],
+ prayer:[['topic','기도 제목','예: 보민이 걱정'],['before','기도 전 마음','예: 답답함'],['after','기도 후 마음','예: 조금 편안해짐']],
+ word:[['verse','오늘 말씀','마음에 남은 말씀'],['why','왜 기억하고 싶은가','오늘 내 상황과 연결해서']],
+ reading:[['book','책 제목','예: 타인의 구두'],['highlight','형광펜 구절','마음에 남은 문장'],['thought','내 생각','왜 꽂혔는지']],
+ english:[['s1','문장 1',''],['t1','해석 1',''],['s2','문장 2',''],['t2','해석 2',''],['s3','문장 3',''],['t3','해석 3','']],
+ gratitude:[['g1','감사 1',''],['g2','감사 2',''],['g3','감사 3','']],
+ family:[['who','누구와','보민 / 재하'],['moment','무슨 일','오늘 기억할 장면'],['feeling','내 마음','고마움, 미안함, 빡침 ㅋㅋ']],
+ swim:[['swimmer','선수','보민 / 재하'],['record','기록 / 연습','예: 50 Back 28.48'],['swimNote','한 줄 메모','언더워터 좋았음']],
+ sauna:[['place','장소','사우나'],['condition','컨디션','피로 풀림 / 별로'],['saunaNote','메모','누구랑 수다, 몸 상태']],
+ health:[['activity','운동/건강','요가, 산책'],['condition','컨디션',''],['healthNote','메모','']],
+ work:[['task','한 일',''],['workNote','메모','']],
+ move:[['route','이동','집 → 학교'],['moveNote','메모','']],
+ rest:[['restType','휴식','커피, 유튜브, 멍때리기'],['restNote','메모','']]
+};
+let blocks=JSON.parse(localStorage.getItem(storageKey)||'[]');
+let selecting=false,startSel=null,endSel=null,editing=null,longTimer=null,longMode=false,touchStartY=0,miniLong=false,miniTimer=null;
+if(!localStorage.getItem(storageKey)){
+ blocks=[mk(6,8,'health','기상 / 요가','🌅',{activity:'요가'}),mk(8,12,'meal','아침 준비','🍳',{menu:'아침 / 도시락'}),mk(15,19,'move','학교 라이드','🚗',{route:'집 → 학교'}),mk(72,84,'swim','수영장','🏊',{swimmer:'보민 / 재하'}),mk(72,81,'sauna','사우나','♨️',{place:'사우나'}),mk(96,98,'english','오늘의 표현','💬',{}),mk(99,102,'prayer','기도','🙏',{topic:'오늘 마음 맡기기'}),mk(102,104,'gratitude','감사','💛',{})];save();
+}
+function mk(start,end,type,title,icon,data){return{id:String(Date.now()+Math.random()),start,end,type,title,icon,data:data||{},memo:'',done:false}}
+function time(slot){const mins=START*60+slot*10;return String(Math.floor(mins/60)).padStart(2,'0')+':'+String(mins%60).padStart(2,'0')}
+function slotFromTime(t){const [h,m]=t.split(':').map(Number);return((h-START)*60+m)/10}
+function save(){localStorage.setItem(storageKey,JSON.stringify(blocks))}
+function setupDate(){const d=new Date();dow.textContent=d.toLocaleDateString('en-US',{weekday:'short'}).toUpperCase();dayNum.textContent=d.getDate();dateText.textContent=d.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'long'})}
+function overlapAt(i){return blocks.filter(x=>i>=x.start&&i<x.end).sort((a,b)=>a.start-b.start)}
+function render(){renderGrid();renderList();renderStats()}
+function renderGrid(){
+ grid.innerHTML='';
+ for(let i=0;i<TOTAL;i++){
+  if(i%6===0){let t=document.createElement('div');t.className='time';t.textContent=time(i);grid.appendChild(t)}
+  let s=document.createElement('div');s.className='slot';s.dataset.i=i;
+  let arr=overlapAt(i);
+  arr.forEach((block,idx)=>{
+   let m=document.createElement('div');m.className='mini cat-'+meta[block.type].cat+(block.done?' done':'');
+   let pct=100/arr.length;m.style.top=(idx*pct)+'%';m.style.height='calc('+pct+'% - 2px)';
+   if(i===block.start || arr.length>1) m.textContent=(block.icon||meta[block.type].icon)+' '+block.title;
+   
+   m.addEventListener('click',(e)=>{
+     e.stopPropagation();
+     if(miniLong){ miniLong=false; return; }
+     openEdit(block.id);
+   });
+   m.addEventListener('mousedown',(e)=>{
+     e.stopPropagation();
+     clearTimeout(miniTimer); miniLong=false;
+     miniTimer=setTimeout(()=>{
+       miniLong=true;
+       openNew(block.start, block.end, 'family');
+       showToast('같은 시간에 새 블록 추가');
+     },520);
+   });
+   m.addEventListener('mouseup',(e)=>{ e.stopPropagation(); clearTimeout(miniTimer); });
+   m.addEventListener('mouseleave',()=>clearTimeout(miniTimer));
+   m.addEventListener('touchstart',(e)=>{
+     e.stopPropagation();
+     clearTimeout(miniTimer); miniLong=false;
+     miniTimer=setTimeout(()=>{
+       miniLong=true;
+       openNew(block.start, block.end, 'family');
+       navigator.vibrate&&navigator.vibrate(10);
+       showToast('같은 시간에 새 블록 추가');
+     },580);
+   },{passive:true});
+   m.addEventListener('touchend',(e)=>{ e.stopPropagation(); clearTimeout(miniTimer); });
+   s.appendChild(m);
+  });
+  if(arr.length===0){
+   s.addEventListener('mousedown',e=>mouseLongStart(i,e));s.addEventListener('mouseenter',()=>{if(longMode)move(i)});s.addEventListener('mouseup',finish);
+   s.addEventListener('touchstart',e=>touchLongStart(i,e),{passive:false});s.addEventListener('touchmove',touchMove,{passive:false});s.addEventListener('touchend',touchEnd);
+  }
+  grid.appendChild(s);
+ }
+ paintSelection();
+}
+function renderList(){
+ list.innerHTML='';let sorted=[...blocks].sort((a,b)=>a.start-b.start);
+ if(!sorted.length){list.innerHTML='<div class="empty">아직 아무 블록도 없어.</div>';return}
+ sorted.forEach(block=>{let div=document.createElement('div');div.className='item'+(block.done?' done':'');div.style.background='var(--'+meta[block.type].cat+')';div.innerHTML='<div class="itemTitle">'+(block.icon||meta[block.type].icon)+' '+block.title+'</div><div class="itemTime">'+time(block.start)+' - '+time(block.end)+'</div>';div.onclick=()=>openEdit(block.id);list.appendChild(div)})
+}
+function renderStats(){
+ let planned=blocks.reduce((a,x)=>a+x.end-x.start,0),done=blocks.filter(x=>x.done).length,records=blocks.reduce((n,x)=>n+Object.values(x.data||{}).filter(v=>String(v||'').trim()).length+(x.memo?1:0),0);
+ blockCount.textContent=blocks.length;doneCount.textContent=done;plannedMin.textContent=planned*10+'m';archiveCount.textContent=records;
+}
+function showToast(msg){toast.textContent=msg;toast.style.display='block';setTimeout(()=>toast.style.display='none',1300)}
+function mouseLongStart(i,e){
+ clearTimeout(longTimer);longMode=false;
+ longTimer=setTimeout(()=>{longMode=true;begin(i);showToast('선택 시작! 드래그해서 시간 늘리기')},450);
+}
+document.addEventListener('mouseup',()=>{clearTimeout(longTimer); if(longMode)finish(); longMode=false});
+function touchLongStart(i,e){
+ touchStartY=e.touches[0].clientY;clearTimeout(longTimer);longMode=false;
+ longTimer=setTimeout(()=>{longMode=true;begin(i);navigator.vibrate&&navigator.vibrate(10);showToast('선택 시작!')},520);
+}
+function touchMove(e){
+ if(!longMode){ if(Math.abs(e.touches[0].clientY-touchStartY)>8) clearTimeout(longTimer); return; }
+ e.preventDefault();
+ const touch=e.touches[0],el=document.elementFromPoint(touch.clientX,touch.clientY);
+ if(el&&el.classList.contains('slot'))move(Number(el.dataset.i));
+}
+function touchEnd(){clearTimeout(longTimer);if(longMode)finish();longMode=false}
+function begin(i){selecting=true;startSel=i;endSel=i;paintSelection()}
+function move(i){if(!selecting)return;endSel=i;paintSelection()}
+function finish(){if(!selecting)return;selecting=false;openNew(Math.min(startSel,endSel),Math.max(startSel,endSel)+1)}
+function paintSelection(){document.querySelectorAll('.slot').forEach(el=>el.classList.remove('selected'));if(startSel===null||endSel===null)return;let a=Math.min(startSel,endSel),z=Math.max(startSel,endSel);document.querySelectorAll('.slot').forEach(el=>{let i=Number(el.dataset.i);if(i>=a&&i<=z)el.classList.add('selected')})}
+function fillFields(type,data={}){
+ template.innerHTML='<div class="templateName">'+meta[type].icon+' '+meta[type].title+' 기록</div>';
+ (fields[type]||[]).forEach(([key,label,ph])=>{let lab=document.createElement('label');lab.textContent=label;template.appendChild(lab);let long=['highlight','thought','moment','why','prep','swimNote','saunaNote','healthNote','workNote','moveNote','restNote'].includes(key);let el=document.createElement(long?'textarea':'input');el.id='f_'+key;el.placeholder=ph;el.value=data[key]||'';template.appendChild(el)})
+}
+function collectFields(type){let out={};(fields[type]||[]).forEach(([key])=>{let el=document.getElementById('f_'+key);out[key]=el?el.value.trim():''});return out}
+function applyType(type,force=true){if(force){iconInput.value=meta[type].icon;titleInput.value=meta[type].title}fillFields(type,{})}
+typeInput.onchange=e=>applyType(e.target.value,true);
+function openNew(start,end,type='family'){editing=null;sheetTitle.textContent='블록 추가';startTime.value=time(start);endTime.value=time(end);typeInput.value=type;memoInput.value='';doneInput.checked=false;deleteBtn.style.display='none';sameTimeBtn.style.display='none';applyType(type,true);modal.classList.add('show')}
+function openEdit(id){let block=blocks.find(x=>x.id===id);if(!block)return;editing=id;sheetTitle.textContent='블록 수정';startTime.value=time(block.start);endTime.value=time(block.end);typeInput.value=block.type;iconInput.value=block.icon;titleInput.value=block.title;memoInput.value=block.memo||'';doneInput.checked=!!block.done;deleteBtn.style.display='block';sameTimeBtn.style.display='block';fillFields(block.type,block.data||{});modal.classList.add('show')}
+function closeModal(){modal.classList.remove('show');startSel=null;endSel=null;editing=null;render()}
+saveBtn.onclick=()=>{let type=typeInput.value;let data={start:slotFromTime(startTime.value),end:slotFromTime(endTime.value),type,icon:iconInput.value.trim()||meta[type].icon,title:titleInput.value.trim()||meta[type].title,data:collectFields(type),memo:memoInput.value.trim(),done:doneInput.checked};if(editing)blocks=blocks.map(x=>x.id===editing?{...x,...data}:x);else blocks.push({...data,id:String(Date.now()+Math.random())});save();closeModal()};
+deleteBtn.onclick=()=>{if(editing)blocks=blocks.filter(x=>x.id!==editing);save();closeModal()};
+sameTimeBtn.onclick=()=>{let st=slotFromTime(startTime.value), en=slotFromTime(endTime.value); modal.classList.remove('show'); editing=null; openNew(st,en,'family')};
+closeBtn.onclick=closeModal;modal.onclick=e=>{if(e.target.id==='modal')closeModal()};
+addNow.onclick=()=>quickAdd('family');resetBtn.onclick=()=>{if(confirm('오늘 데이터를 초기화할까?')){localStorage.removeItem(storageKey);localStorage.removeItem(noteKey);location.reload()}};
+function quickAdd(type){const now=new Date();let idx=Math.floor(((now.getHours()-START)*60+now.getMinutes())/10);if(idx<0)idx=0;if(idx>TOTAL-3)idx=TOTAL-3;openNew(idx,idx+3,type)}
+dayNote.value=localStorage.getItem(noteKey)||'';dayNote.oninput=()=>localStorage.setItem(noteKey,dayNote.value);
+setupDate();render();
+</script>
+</body>
+</html>
